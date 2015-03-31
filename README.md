@@ -22,5 +22,3 @@ Copyright 2015- Sean Zellmer
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
-# SEE ALSO
