@@ -1,0 +1,9 @@
+/App-Jiffy-*
+/.build
+/_build*
+/Build
+MYMETA.*
+!META.json
+/.prove
+local/
+cpanfile.snapshot
