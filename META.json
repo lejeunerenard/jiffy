@@ -37,6 +37,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Dancer" : "0",
             "MongoDB" : "0",
             "Moo" : "0",
             "YAML::Any" : "0",

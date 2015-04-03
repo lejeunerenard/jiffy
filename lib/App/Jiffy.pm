@@ -53,6 +53,10 @@ App::Jiffy - A minimalist time tracking app focused on precision and effortlessn
   jiffy Solving world hunger
   jiffy Cleaning the plasma manifolds
 
+  # Run server
+  jiffyd
+  curl -d "title=Meeting with Client X" http://localhost:3000/timeentry
+
 =head1 DESCRIPTION
 
 App::Jiffy's philosophy is that you should have to do as little as possible to track your time. Instead you should focus on working. App::Jiffy also focuses on precision. Many times time tracking results in globbing activities together masking the fact that your 5 hours of work on project "X" was actually 3 hours of work with interruptions from your coworker asking about project "Y".
@@ -63,7 +67,7 @@ In order to be precise with as little effort as possible, App::Jiffy will be ava
 
 =item Command line tool
 
-=item Web app
+=item Web app L<App::Jiffyd>
 
 =item iPhone app ( potentially )
 
