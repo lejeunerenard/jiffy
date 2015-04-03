@@ -44,7 +44,7 @@ C<db> get the db handler from MongoDB
 sub db {
   my $self = shift;
   my $client = MongoDB::MongoClient->new;
-  return $client->get_database( $self->cfg->{db} || 'jiffy' );
+  return $client->get_database( ( $self->cfg ) ? $self->cfg->{db} : 'jiffy' );
 }
 
 =head2 save
