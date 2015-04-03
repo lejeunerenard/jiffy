@@ -18,12 +18,6 @@ has cfg => (
   },
 );
 
-=head2 add_entry
-
-C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
-
-=cut
-
 sub add_entry {
   my $self = shift;
   my $title = shift;
@@ -34,12 +28,6 @@ sub add_entry {
     cfg => $self->cfg,
   )->save;
 }
-
-=head2 run
-
-C<run> will start an instance of the Jiffy app.
-
-=cut
 
 sub run {
   my $self = shift;
@@ -55,15 +43,43 @@ __END__
 
 =head1 NAME
 
-App::Jiffy - Blah blah blah
+App::Jiffy - A minimalist time tracking app focused on precision and effortlessness.
 
 =head1 SYNOPSIS
 
   use App::Jiffy;
 
+  # cmd line tool
+  jiffy Solving world hunger
+  jiffy Cleaning the plasma manifolds
+
 =head1 DESCRIPTION
 
-App::Jiffy is
+App::Jiffy's philosophy is that you should have to do as little as possible to track your time. Instead you should focus on working. App::Jiffy also focuses on precision. Many times time tracking results in globbing activities together masking the fact that your 5 hours of work on project "X" was actually 3 hours of work with interruptions from your coworker asking about project "Y".
+
+In order to be precise with as little effort as possible, App::Jiffy will be available via a myriad of mediums and devices but will have a central server to combine all the information. Plans currently include the following applications:
+
+=over
+
+=item Command line tool
+
+=item Web app
+
+=item iPhone app ( potentially )
+
+=back
+
+=head2 add_entry
+
+C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
+
+=cut
+
+=head2 run
+
+C<run> will start an instance of the Jiffy app.
+
+=cut
 
 =head1 AUTHOR
 
@@ -77,7 +93,5 @@ Copyright 2015- Sean Zellmer
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
-=head1 SEE ALSO
 
 =cut

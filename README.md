@@ -5,7 +5,10 @@ App::Jiffy - A minimalist time tracking app focused on precision and effortlessn
 # SYNOPSIS
 
     use App::Jiffy;
-    # cmd line tool to come
+
+    # cmd line tool
+    jiffy Solving world hunger
+    jiffy Cleaning the plasma manifolds
 
 # DESCRIPTION
 
@@ -16,6 +19,14 @@ In order to be precise with as little effort as possible, App::Jiffy will be ava
 - Command line tool
 - Web app
 - iPhone app ( potentially )
+
+## add\_entry
+
+`add_entry` will create a new TimeEntry with the current time as the entry's start\_time.
+
+## run
+
+`run` will start an instance of the Jiffy app.
 
 # AUTHOR
 
