@@ -9,6 +9,7 @@ App::Jiffy - A minimalist time tracking app focused on precision and effortlessn
     # cmd line tool
     jiffy Solving world hunger
     jiffy Cleaning the plasma manifolds
+    jiffy current # Returns the elapsed time for the current task
 
     # Run server
     jiffyd
@@ -35,6 +36,10 @@ The following are methods available on the `App::Jiffy` object.
 ## add\_entry
 
 `add_entry` will create a new TimeEntry with the current time as the entry's start\_time.
+
+## current\_time
+
+`current_time` will print out the elapsed time for the current task (AKA the time since the last entry was created).
 
 ## run
 

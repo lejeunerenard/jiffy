@@ -29,11 +29,32 @@ sub add_entry {
   )->save;
 }
 
+sub current_time {
+  my $self = shift;
+
+  my $latest = App::Jiffy::TimeEntry::last_entry($self->cfg);
+
+  my $duration = DateTime->now->subtract_datetime($latest->start_time);
+
+  print "The current task has been running for";
+
+  my %deltas = $duration->deltas;
+  foreach my $unit ( keys %deltas ) {
+    next unless $deltas{$unit};
+    print " " . $deltas{$unit} . " ". $unit;
+  }
+  print ".\n";
+}
+
 sub run {
   my $self = shift;
   my @args = @_;
 
-  $self->add_entry(join ' ' , @_);
+  if ( $args[0] eq 'current' ) {
+    return $self->current_time(@_);
+  }
+
+  return $self->add_entry(join ' ' , @_);
 }
 
 1;
@@ -52,6 +73,7 @@ App::Jiffy - A minimalist time tracking app focused on precision and effortlessn
   # cmd line tool
   jiffy Solving world hunger
   jiffy Cleaning the plasma manifolds
+  jiffy current # Returns the elapsed time for the current task
 
   # Run server
   jiffyd
@@ -84,6 +106,12 @@ The following are methods available on the C<App::Jiffy> object.
 =head2 add_entry
 
 C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
+
+=cut
+
+=head2 current_time
+
+C<current_time> will print out the elapsed time for the current task (AKA the time since the last entry was created).
 
 =cut
 
