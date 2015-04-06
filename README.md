@@ -41,6 +41,10 @@ The following are methods available on the `App::Jiffy` object.
 
 `current_time` will print out the elapsed time for the current task (AKA the time since the last entry was created).
 
+## time\_sheet
+
+`time_sheet` will print out a time sheet including the time spent for each `TimeEntry`.
+
 ## run
 
 `run` will start an instance of the Jiffy app.

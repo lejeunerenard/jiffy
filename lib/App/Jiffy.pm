@@ -32,9 +32,7 @@ sub add_entry {
 sub current_time {
   my $self = shift;
 
-  my $latest = App::Jiffy::TimeEntry::last_entry($self->cfg);
-
-  my $duration = DateTime->now->subtract_datetime($latest->start_time);
+  my $duration = App::Jiffy::TimeEntry::last_entry($self->cfg)->duration;
 
   print '"' . $latest->title . '" has been running for';
 
@@ -46,12 +44,38 @@ sub current_time {
   print ".\n";
 }
 
+sub time_sheet {
+  my $self = shift;
+  my @entries = App::Jiffy::TimeEntry::search(
+    $self->cfg,
+    query => {
+      start_time => { '$gt' => DateTime->now->truncate( to => 'day' ), },
+    },
+    sort => {
+      start_time => 1,
+    },
+  );
+
+  print "Today's timesheet:\n\n";
+
+  foreach my $entry ( @entries ) {
+    my %deltas = $entry->duration->deltas;
+    foreach my $unit ( keys %deltas ) {
+      next unless $deltas{$unit};
+      print $deltas{$unit} . " ". $unit . " ";
+    }
+    print "\t " . $entry->title . "\n";
+  }
+}
+
 sub run {
   my $self = shift;
   my @args = @_;
 
   if ( $args[0] eq 'current' ) {
     return $self->current_time(@_);
+  } elsif ( $args[0] eq 'timesheet' ) {
+    return $self->time_sheet(@_);
   }
 
   return $self->add_entry(join ' ' , @_);
@@ -112,6 +136,12 @@ C<add_entry> will create a new TimeEntry with the current time as the entry's st
 =head2 current_time
 
 C<current_time> will print out the elapsed time for the current task (AKA the time since the last entry was created).
+
+=cut
+
+=head2 time_sheet
+
+C<time_sheet> will print out a time sheet including the time spent for each C<TimeEntry>.
 
 =cut
 
