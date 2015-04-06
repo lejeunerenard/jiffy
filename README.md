@@ -24,6 +24,14 @@ In order to be precise with as little effort as possible, App::Jiffy will be ava
 - Web app [App::Jiffyd](https://metacpan.org/pod/App::Jiffyd)
 - iPhone app ( potentially )
 
+# INSTALLATION
+
+    curl -L https://cpanmin.us | perl - git://github.com/lejeunerenard/jiffy
+
+# METHODS
+
+The following are methods available on the `App::Jiffy` object.
+
 ## add\_entry
 
 `add_entry` will create a new TimeEntry with the current time as the entry's start\_time.

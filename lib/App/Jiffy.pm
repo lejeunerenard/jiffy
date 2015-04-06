@@ -73,6 +73,14 @@ In order to be precise with as little effort as possible, App::Jiffy will be ava
 
 =back
 
+=head1 INSTALLATION
+
+  curl -L https://cpanmin.us | perl - git://github.com/lejeunerenard/jiffy
+
+=head1 METHODS
+
+The following are methods available on the C<App::Jiffy> object.
+
 =head2 add_entry
 
 C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
