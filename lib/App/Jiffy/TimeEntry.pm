@@ -9,6 +9,8 @@ use MongoDB::OID;
 
 use Moo;
 
+my $collection = 'timeEntry';
+
 has id => (
    is    => 'rw',
    isa => sub {
@@ -62,10 +64,10 @@ sub save {
    };
    if ( $_id ) {
      # Update the existing record
-     $self->db->get_collection('timeEntry')->update( { _id => $self->id  }, { '$set' => $document  }  );
+     $self->db->get_collection($collection)->update( { _id => $self->id  }, { '$set' => $document  }  );
    } else {
      # Insert new record
-     $_id = $self->db->get_collection('timeEntry')->insert($document);
+     $_id = $self->db->get_collection($collection)->insert($document);
      # Update id
      $self->id($_id);
    }
@@ -82,7 +84,27 @@ sub find {
   my $_id = shift;
 
   my $client = MongoDB::MongoClient->new;
-  my $entry = $client->get_database( $cfg->{db} )->get_collection('timeEntry')->find_one({ _id => $_id });
+  my $entry = $client->get_database( $cfg->{db} )->get_collection($collection)->find_one({ _id => $_id });
+  return unless $entry;
+  return App::Jiffy::TimeEntry->new(
+    id => $entry->{_id},
+    title => $entry->{title},
+    start_time => $entry->{start_time},
+    cfg => $cfg,
+  );
+}
+
+=head2 last_entry
+
+Summary of last_entry
+
+=cut
+
+sub last_entry {
+  my $cfg = shift;
+
+  my $client = MongoDB::MongoClient->new;
+  my $entry = $client->get_database( $cfg->{db} )->get_collection($collection)->find->sort({ start_time => -1 })->limit(1)->next;
   return unless $entry;
   return App::Jiffy::TimeEntry->new(
     id => $entry->{_id},

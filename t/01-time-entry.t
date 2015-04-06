@@ -58,5 +58,20 @@ subtest 'Attributes' => sub {
       };
   };
 };
+subtest 'Class methods' => sub {
+  subtest 'last_entry' => sub {
+    my $time_entry = App::Jiffy::TimeEntry->new(
+      title => 'Latest thing',
+      cfg => $cfg,
+      # Add a day to ensure it comes up last. If you don't the previously
+      # created item can come up as last
+      start_time => DateTime->now->add( days => 1 ),
+    );
+    ok $time_entry->save, 'create entry';
+
+    my $last_entry = App::Jiffy::TimeEntry::last_entry($cfg);
+    is $last_entry->id, $time_entry->id, 'received latest entry';
+  };
+};
 
 done_testing;
