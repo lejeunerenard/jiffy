@@ -2,6 +2,11 @@ Revision history for App-Jiffy
 
 {{$NEXT}}
 
+0.02  2015-04-06 14:48:30 CDT
+        - Added minimalist HTTP server ( AKA `jiffyd` )
+        - Added docs
+        - Added `current` subcommand to `App::Jiffy`
+
 0.01  2015-04-03 01:14:57 CDT
         - Initial release
         - Insert and Update TimeEntries
