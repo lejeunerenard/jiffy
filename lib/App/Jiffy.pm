@@ -18,6 +18,24 @@ has cfg => (
   },
 );
 
+has terminator_regex => (
+  is => 'ro',
+  isa => sub {
+    die 'terminator_regex must be a regex ref' unless ref $_[0] eq 'Regexp';
+  },
+  default => sub {
+    qr/^end$|
+    ^done$|
+    ^eod$|
+    ^finished$|
+    ^\\\(^\s*\.^\s*\)\/$| # This is a smily face with hands raised
+    ^✓$|
+    ^x$/x;
+  },
+);
+
+
+
 sub add_entry {
   my $self = shift;
   my $title = shift;
@@ -59,6 +77,7 @@ sub time_sheet {
   print "Today's timesheet:\n\n";
 
   foreach my $entry ( @entries ) {
+    next if $entry->title =~ $self->terminator_regex;
     my %deltas = $entry->duration->deltas;
     foreach my $unit ( keys %deltas ) {
       next unless $deltas{$unit};
