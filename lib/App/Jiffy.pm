@@ -50,7 +50,8 @@ sub add_entry {
 sub current_time {
   my $self = shift;
 
-  my $duration = App::Jiffy::TimeEntry::last_entry($self->cfg)->duration;
+  my $latest = App::Jiffy::TimeEntry::last_entry($self->cfg);
+  my $duration = $latest->duration;
 
   print '"' . $latest->title . '" has been running for';
 
