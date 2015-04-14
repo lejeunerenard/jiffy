@@ -36,7 +36,7 @@ sub current_time {
 
   my $duration = DateTime->now->subtract_datetime($latest->start_time);
 
-  print "The current task has been running for";
+  print '"' . $latest->title . '" has been running for';
 
   my %deltas = $duration->deltas;
   foreach my $unit ( keys %deltas ) {
