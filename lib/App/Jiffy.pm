@@ -65,20 +65,47 @@ sub current_time {
 
 sub time_sheet {
   my $self = shift;
+  my $from = shift;
+
+  my $from_date = DateTime->today;
+
+  if ( defined $from ) {
+    $from_date->subtract( days => $from );
+  }
+
   my @entries = App::Jiffy::TimeEntry::search(
     $self->cfg,
     query => {
-      start_time => { '$gt' => DateTime->now->truncate( to => 'day' ), },
+      start_time => { '$gt' => $from_date, },
     },
     sort => {
       start_time => 1,
     },
   );
 
-  print "Today's timesheet:\n\n";
+  if ( $from ) {
+    print "The past " . $from . " days' timesheet:\n\n";
+  } else {
+    print "Today's timesheet:\n\n";
+  }
+
+  my $current_day = $entries[0]->start_time->clone->truncate( to => 'day' );
+  if ( $from ) {
+    print "Date: " . $current_day->mdy('/') . "\n";
+  }
 
   foreach my $entry ( @entries ) {
+    # Skip terminators
     next if $entry->title =~ $self->terminator_regex;
+
+    my $start_time = $entry->start_time->clone;
+
+    if ( DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) ) == -1 ) {
+      $current_day = $start_time->truncate( to => 'day' );
+      print "\nDate: " . $current_day->mdy('/') . "\n";
+    }
+
+    # Get the deltas
     my %deltas = $entry->duration->deltas;
     foreach my $unit ( keys %deltas ) {
       next unless $deltas{$unit};
@@ -93,8 +120,10 @@ sub run {
   my @args = @_;
 
   if ( $args[0] eq 'current' ) {
+    shift;
     return $self->current_time(@_);
   } elsif ( $args[0] eq 'timesheet' ) {
+    shift;
     return $self->time_sheet(@_);
   }
 
