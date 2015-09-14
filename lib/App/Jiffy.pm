@@ -18,6 +18,24 @@ has cfg => (
   },
 );
 
+has terminator_regex => (
+  is => 'ro',
+  isa => sub {
+    die 'terminator_regex must be a regex ref' unless ref $_[0] eq 'Regexp';
+  },
+  default => sub {
+    qr/^end$|
+    ^done$|
+    ^eod$|
+    ^finished$|
+    ^\\\(^\s*\.^\s*\)\/$| # This is a smily face with hands raised
+    ^✓$|
+    ^x$/x;
+  },
+);
+
+
+
 sub add_entry {
   my $self = shift;
   my $title = shift;
@@ -33,8 +51,7 @@ sub current_time {
   my $self = shift;
 
   my $latest = App::Jiffy::TimeEntry::last_entry($self->cfg);
-
-  my $duration = DateTime->now->subtract_datetime($latest->start_time);
+  my $duration = $latest->duration;
 
   print '"' . $latest->title . '" has been running for';
 
@@ -46,12 +63,68 @@ sub current_time {
   print ".\n";
 }
 
+sub time_sheet {
+  my $self = shift;
+  my $from = shift;
+
+  my $from_date = DateTime->today;
+
+  if ( defined $from ) {
+    $from_date->subtract( days => $from );
+  }
+
+  my @entries = App::Jiffy::TimeEntry::search(
+    $self->cfg,
+    query => {
+      start_time => { '$gt' => $from_date, },
+    },
+    sort => {
+      start_time => 1,
+    },
+  );
+
+  if ( $from ) {
+    print "The past " . $from . " days' timesheet:\n\n";
+  } else {
+    print "Today's timesheet:\n\n";
+  }
+
+  my $current_day = $entries[0]->start_time->clone->truncate( to => 'day' );
+  if ( $from ) {
+    print "Date: " . $current_day->mdy('/') . "\n";
+  }
+
+  foreach my $entry ( @entries ) {
+    # Skip terminators
+    next if $entry->title =~ $self->terminator_regex;
+
+    my $start_time = $entry->start_time->clone;
+
+    if ( DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) ) == -1 ) {
+      $current_day = $start_time->truncate( to => 'day' );
+      print "\nDate: " . $current_day->mdy('/') . "\n";
+    }
+
+    # Get the deltas
+    my %deltas = $entry->duration->deltas;
+    foreach my $unit ( keys %deltas ) {
+      next unless $deltas{$unit};
+      print $deltas{$unit} . " ". $unit . " ";
+    }
+    print "\t " . $entry->title . "\n";
+  }
+}
+
 sub run {
   my $self = shift;
   my @args = @_;
 
   if ( $args[0] eq 'current' ) {
+    shift;
     return $self->current_time(@_);
+  } elsif ( $args[0] eq 'timesheet' ) {
+    shift;
+    return $self->time_sheet(@_);
   }
 
   return $self->add_entry(join ' ' , @_);
@@ -112,6 +185,12 @@ C<add_entry> will create a new TimeEntry with the current time as the entry's st
 =head2 current_time
 
 C<current_time> will print out the elapsed time for the current task (AKA the time since the last entry was created).
+
+=cut
+
+=head2 time_sheet
+
+C<time_sheet> will print out a time sheet including the time spent for each C<TimeEntry>.
 
 =cut
 

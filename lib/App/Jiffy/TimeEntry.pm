@@ -73,6 +73,34 @@ sub save {
    }
 }
 
+=head2 duration
+
+C<duration> returns the time between this entry and the next.
+
+=cut
+
+sub duration {
+  my $self = shift;
+
+  my @entry_after = App::Jiffy::TimeEntry::search($self->cfg,
+    query => {
+      start_time => {
+        '$gt' => $self->start_time,
+      },
+    },
+    sort => {
+      start_time => 1,
+    },
+    limit => 1,
+  );
+
+  if ( @entry_after ) {
+    return $entry_after[0]->start_time->subtract_datetime($self->start_time);
+  } else {
+    return DateTime->now->subtract_datetime($self->start_time);
+  }
+}
+
 =head2 find
 
 C<find> will return a single document. The query will use the provided C<_id>.
@@ -94,9 +122,65 @@ sub find {
   );
 }
 
+=head2 search C<$config> C<%options>...
+
+C<search> will return an array of TimeEntry that fit the given C<%options>.
+
+C<%options> can include the following:
+
+=over
+
+=item C<query>
+
+This is the query syntax available via L<MongoDB::Collection>.
+
+=item C<sort>
+
+If present, the results will be sorted via the hashref given by this option.
+
+=item C<limit>
+
+If present, the results will limited to the number provided.
+
+=back
+
+=cut
+
+sub search {
+  my $cfg = shift;
+  my %options = @_;
+  my $query = $options{query};
+  my $sort = $options{sort};
+  my $limit = $options{limit};
+
+  my $client = MongoDB::MongoClient->new;
+  my $entries = $client->get_database( $cfg->{db} )->get_collection($collection)->find($query);
+
+  if ($sort) {
+    $entries = $entries->sort($sort);
+  }
+
+  if ($limit) {
+    $entries = $entries->limit($limit);
+  }
+
+  # Return undef if nothing was found
+  return unless $entries;
+
+  # @TODO create a subclass of the MongoDB cursor that allows chaining of results like MongoDB
+  map {
+    App::Jiffy::TimeEntry->new(
+        id         => $_->{_id},
+        title      => $_->{title},
+        start_time => $_->{start_time},
+        cfg        => $cfg,
+    )
+  } $entries->all;
+}
+
 =head2 last_entry
 
-Summary of last_entry
+C<last_entry> will return the last TimeEntry in the db.
 
 =cut
 
