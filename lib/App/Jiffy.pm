@@ -9,6 +9,9 @@ our $VERSION = '0.02';
 use App::Jiffy::TimeEntry;
 use YAML::Any qw( LoadFile );
 
+use Getopt::Long;
+Getopt::Long::Configure("pass_through");
+
 use Moo;
 
 has cfg => (
@@ -34,15 +37,56 @@ has terminator_regex => (
   },
 );
 
-
-
 sub add_entry {
   my $self = shift;
-  my $title = shift;
+  my $options = shift;
+  my $title;
+  if ( ref $options ne 'HASH' ) {
+    $title = $options;
+    undef $options;
+  } else {
+    $title = shift;
+  }
+
+  my $start_time;
+
+  if ( $options->{time} ) {
+    require DateTime::Format::Strptime;
+
+    # @TODO Figure out something more flexible and powerful to get time
+
+    # First try H:M:S
+    my $strp = DateTime::Format::Strptime->new(
+      pattern => '%T',
+      time_zone => 'local',
+    );
+    $start_time = $strp->parse_datetime($options->{time});
+
+    # If no time found try just H:M
+    if ( not $start_time ) {
+      my $strp = DateTime::Format::Strptime->new(
+          pattern   => '%R',
+          time_zone => 'local',
+      );
+      $start_time = $strp->parse_datetime( $options->{time} );
+    }
+
+    # Make sure the date part of the datetime is not set to the
+    # beginning of time.
+    my $now = DateTime->now;
+    if ( $start_time and $start_time->year < $now->year ) {
+      $start_time->set(
+        day => $now->day,
+        month => $now->month,
+        year => $now->year,
+      )
+    }
+  }
 
   # Create and save Entry
   App::Jiffy::TimeEntry->new(
     title => $title,
+    start_time => $start_time // DateTime->now,
     cfg => $self->cfg,
   )->save;
 }
@@ -120,14 +164,24 @@ sub run {
   my @args = @_;
 
   if ( $args[0] eq 'current' ) {
-    shift;
-    return $self->current_time(@_);
+    shift @args;
+    return $self->current_time(@args);
   } elsif ( $args[0] eq 'timesheet' ) {
-    shift;
-    return $self->time_sheet(@_);
+    shift @args;
+    return $self->time_sheet(@args);
   }
 
-  return $self->add_entry(join ' ' , @_);
+  my $p = Getopt::Long::Parser->new(
+    config => ['pass_through'],
+  );
+  $p->getoptionsfromarray(
+    \@args,
+    'time=s' => \my $time,
+  );
+
+  return $self->add_entry({
+      time => $time,
+    }, join ' ' , @args);
 }
 
 1;
