@@ -1,0 +1,7 @@
+# Whitespace
+-i=2
+
+# Nesting
+-sot
+-sct
+-ce

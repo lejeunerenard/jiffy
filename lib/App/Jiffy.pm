@@ -15,14 +15,14 @@ Getopt::Long::Configure("pass_through");
 use Moo;
 
 has cfg => (
-  is  => 'ro',
+  is      => 'ro',
   default => sub {
-    LoadFile($ENV{HOME} . '/.jiffy.yml') || {};
+    LoadFile( $ENV{HOME} . '/.jiffy.yml' ) || {};
   },
 );
 
 has terminator_regex => (
-  is => 'ro',
+  is  => 'ro',
   isa => sub {
     die 'terminator_regex must be a regex ref' unless ref $_[0] eq 'Regexp';
   },
@@ -38,7 +38,7 @@ has terminator_regex => (
 );
 
 sub add_entry {
-  my $self = shift;
+  my $self    = shift;
   my $options = shift;
   my $title;
   if ( ref $options ne 'HASH' ) {
@@ -57,16 +57,16 @@ sub add_entry {
 
     # First try H:M:S
     my $strp = DateTime::Format::Strptime->new(
-      pattern => '%T',
+      pattern   => '%T',
       time_zone => 'local',
     );
-    $start_time = $strp->parse_datetime($options->{time});
+    $start_time = $strp->parse_datetime( $options->{time} );
 
     # If no time found try just H:M
     if ( not $start_time ) {
       my $strp = DateTime::Format::Strptime->new(
-          pattern   => '%R',
-          time_zone => 'local',
+        pattern   => '%R',
+        time_zone => 'local',
       );
       $start_time = $strp->parse_datetime( $options->{time} );
     }
@@ -76,25 +76,25 @@ sub add_entry {
     my $now = DateTime->now;
     if ( $start_time and $start_time->year < $now->year ) {
       $start_time->set(
-        day => $now->day,
+        day   => $now->day,
         month => $now->month,
-        year => $now->year,
-      )
+        year  => $now->year,
+      );
     }
   }
 
   # Create and save Entry
   App::Jiffy::TimeEntry->new(
-    title => $title,
+    title      => $title,
     start_time => $start_time // DateTime->now,
-    cfg => $self->cfg,
+    cfg        => $self->cfg,
   )->save;
 }
 
 sub current_time {
   my $self = shift;
 
-  my $latest = App::Jiffy::TimeEntry::last_entry($self->cfg);
+  my $latest   = App::Jiffy::TimeEntry::last_entry( $self->cfg );
   my $duration = $latest->duration;
 
   print '"' . $latest->title . '" has been running for';
@@ -102,7 +102,7 @@ sub current_time {
   my %deltas = $duration->deltas;
   foreach my $unit ( keys %deltas ) {
     next unless $deltas{$unit};
-    print " " . $deltas{$unit} . " ". $unit;
+    print " " . $deltas{$unit} . " " . $unit;
   }
   print ".\n";
 }
@@ -127,24 +127,28 @@ sub time_sheet {
     },
   );
 
-  if ( $from ) {
+  if ($from) {
     print "The past " . $from . " days' timesheet:\n\n";
   } else {
     print "Today's timesheet:\n\n";
   }
 
   my $current_day = $entries[0]->start_time->clone->truncate( to => 'day' );
-  if ( $from ) {
+  if ($from) {
     print "Date: " . $current_day->mdy('/') . "\n";
   }
 
-  foreach my $entry ( @entries ) {
+  foreach my $entry (@entries) {
+
     # Skip terminators
     next if $entry->title =~ $self->terminator_regex;
 
     my $start_time = $entry->start_time->clone;
 
-    if ( DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) ) == -1 ) {
+    if (
+      DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) )
+      == -1 )
+    {
       $current_day = $start_time->truncate( to => 'day' );
       print "\nDate: " . $current_day->mdy('/') . "\n";
     }
@@ -153,7 +157,7 @@ sub time_sheet {
     my %deltas = $entry->duration->deltas;
     foreach my $unit ( keys %deltas ) {
       next unless $deltas{$unit};
-      print $deltas{$unit} . " ". $unit . " ";
+      print $deltas{$unit} . " " . $unit . " ";
     }
     print "\t " . $entry->title . "\n";
   }
@@ -171,17 +175,15 @@ sub run {
     return $self->time_sheet(@args);
   }
 
-  my $p = Getopt::Long::Parser->new(
-    config => ['pass_through'],
-  );
-  $p->getoptionsfromarray(
-    \@args,
-    'time=s' => \my $time,
-  );
+  my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+  $p->getoptionsfromarray( \@args, 'time=s' => \my $time, );
 
-  return $self->add_entry({
+  return $self->add_entry( {
       time => $time,
-    }, join ' ' , @args);
+    },
+    join ' ',
+    @args
+  );
 }
 
 1;

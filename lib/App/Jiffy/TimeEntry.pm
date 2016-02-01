@@ -12,30 +12,30 @@ use Moo;
 my $collection = 'timeEntry';
 
 has id => (
-   is    => 'rw',
-   isa => sub {
-      die 'id must be a MongoDB::OID' unless blessed $_[0] and $_[0]->isa('MongoDB::OID');
-   },
+  is  => 'rw',
+  isa => sub {
+    die 'id must be a MongoDB::OID'
+      unless blessed $_[0] and $_[0]->isa('MongoDB::OID');
+  },
 );
 
 has start_time => (
-   is  => 'rw',
-   isa => sub {
-      die 'start_time is not a DateTime object' unless blessed $_[0] and $_[0]->isa('DateTime');
-   },
-   default => sub {
-     DateTime->now();
-   },
+  is  => 'rw',
+  isa => sub {
+    die 'start_time is not a DateTime object'
+      unless blessed $_[0] and $_[0]->isa('DateTime');
+  },
+  default => sub {
+    DateTime->now();
+  },
 );
 
 has title => (
-   is  => 'rw',
-   required => 1,
+  is       => 'rw',
+  required => 1,
 );
 
-has cfg => (
-  is => 'ro',
-);
+has cfg => ( is => 'ro', );
 
 =head2 db
 
@@ -44,7 +44,7 @@ C<db> get the db handler from MongoDB
 =cut
 
 sub db {
-  my $self = shift;
+  my $self   = shift;
   my $client = MongoDB::MongoClient->new;
   return $client->get_database( ( $self->cfg ) ? $self->cfg->{db} : 'jiffy' );
 }
@@ -56,21 +56,25 @@ C<save> will commit the current state of the C<TimeEntry> to the database.
 =cut
 
 sub save {
-   my $self = shift;
-   my $_id = $self->id;
-   my $document = {
-     start_time => $self->start_time,
-     title =>$self->title,
-   };
-   if ( $_id ) {
-     # Update the existing record
-     $self->db->get_collection($collection)->update( { _id => $self->id  }, { '$set' => $document  }  );
-   } else {
-     # Insert new record
-     $_id = $self->db->get_collection($collection)->insert($document);
-     # Update id
-     $self->id($_id);
-   }
+  my $self     = shift;
+  my $_id      = $self->id;
+  my $document = {
+    start_time => $self->start_time,
+    title      => $self->title,
+  };
+  if ($_id) {
+
+    # Update the existing record
+    $self->db->get_collection($collection)
+      ->update( { _id => $self->id }, { '$set' => $document } );
+  } else {
+
+    # Insert new record
+    $_id = $self->db->get_collection($collection)->insert($document);
+
+    # Update id
+    $self->id($_id);
+  }
 }
 
 =head2 duration
@@ -82,7 +86,8 @@ C<duration> returns the time between this entry and the next.
 sub duration {
   my $self = shift;
 
-  my @entry_after = App::Jiffy::TimeEntry::search($self->cfg,
+  my @entry_after = App::Jiffy::TimeEntry::search(
+    $self->cfg,
     query => {
       start_time => {
         '$gt' => $self->start_time,
@@ -94,10 +99,10 @@ sub duration {
     limit => 1,
   );
 
-  if ( @entry_after ) {
-    return $entry_after[0]->start_time->subtract_datetime($self->start_time);
+  if (@entry_after) {
+    return $entry_after[0]->start_time->subtract_datetime( $self->start_time );
   } else {
-    return DateTime->now->subtract_datetime($self->start_time);
+    return DateTime->now->subtract_datetime( $self->start_time );
   }
 }
 
@@ -112,13 +117,14 @@ sub find {
   my $_id = shift;
 
   my $client = MongoDB::MongoClient->new;
-  my $entry = $client->get_database( $cfg->{db} )->get_collection($collection)->find_one({ _id => $_id });
+  my $entry  = $client->get_database( $cfg->{db} )->get_collection($collection)
+    ->find_one( { _id => $_id } );
   return unless $entry;
   return App::Jiffy::TimeEntry->new(
-    id => $entry->{_id},
-    title => $entry->{title},
+    id         => $entry->{_id},
+    title      => $entry->{title},
     start_time => $entry->{start_time},
-    cfg => $cfg,
+    cfg        => $cfg,
   );
 }
 
@@ -147,14 +153,15 @@ If present, the results will limited to the number provided.
 =cut
 
 sub search {
-  my $cfg = shift;
+  my $cfg     = shift;
   my %options = @_;
-  my $query = $options{query};
-  my $sort = $options{sort};
-  my $limit = $options{limit};
+  my $query   = $options{query};
+  my $sort    = $options{sort};
+  my $limit   = $options{limit};
 
-  my $client = MongoDB::MongoClient->new;
-  my $entries = $client->get_database( $cfg->{db} )->get_collection($collection)->find($query);
+  my $client  = MongoDB::MongoClient->new;
+  my $entries = $client->get_database( $cfg->{db} )->get_collection($collection)
+    ->find($query);
 
   if ($sort) {
     $entries = $entries->sort($sort);
@@ -167,14 +174,14 @@ sub search {
   # Return undef if nothing was found
   return unless $entries;
 
-  # @TODO create a subclass of the MongoDB cursor that allows chaining of results like MongoDB
+# @TODO create a subclass of the MongoDB cursor that allows chaining of results like MongoDB
   map {
     App::Jiffy::TimeEntry->new(
-        id         => $_->{_id},
-        title      => $_->{title},
-        start_time => $_->{start_time},
-        cfg        => $cfg,
-    )
+      id         => $_->{_id},
+      title      => $_->{title},
+      start_time => $_->{start_time},
+      cfg        => $cfg,
+      )
   } $entries->all;
 }
 
@@ -188,13 +195,14 @@ sub last_entry {
   my $cfg = shift;
 
   my $client = MongoDB::MongoClient->new;
-  my $entry = $client->get_database( $cfg->{db} )->get_collection($collection)->find->sort({ start_time => -1 })->limit(1)->next;
+  my $entry  = $client->get_database( $cfg->{db} )->get_collection($collection)
+    ->find->sort( { start_time => -1 } )->limit(1)->next;
   return unless $entry;
   return App::Jiffy::TimeEntry->new(
-    id => $entry->{_id},
-    title => $entry->{title},
+    id         => $entry->{_id},
+    title      => $entry->{title},
     start_time => $entry->{start_time},
-    cfg => $cfg,
+    cfg        => $cfg,
   );
 }
 1;
