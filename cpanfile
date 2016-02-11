@@ -6,5 +6,5 @@ requires 'YAML::Any';
 requires 'Dancer';
 
 on test => sub {
-    requires 'Test::More', '0.88';
+  requires 'Test::More', '0.88';
 };

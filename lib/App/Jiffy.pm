@@ -49,6 +49,7 @@ sub add_entry {
   }
 
   my $start_time;
+  my $now = DateTime->now( time_zone => 'local' );
 
   if ( $options->{time} ) {
     require DateTime::Format::Strptime;
@@ -73,7 +74,6 @@ sub add_entry {
 
     # Make sure the date part of the datetime is not set to the
     # beginning of time.
-    my $now = DateTime->now;
     if ( $start_time and $start_time->year < $now->year ) {
       $start_time->set(
         day   => $now->day,
@@ -86,7 +86,7 @@ sub add_entry {
   # Create and save Entry
   App::Jiffy::TimeEntry->new(
     title      => $title,
-    start_time => $start_time // DateTime->now,
+    start_time => $start_time // $now,
     cfg        => $self->cfg,
   )->save;
 }
