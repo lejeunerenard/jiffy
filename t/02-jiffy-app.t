@@ -6,6 +6,10 @@ use Test::Exception;
 
 use Capture::Tiny ':all';
 
+use lib qw{ ./t/lib };
+
+use CreateTimeEntries qw/generate/;
+
 use YAML::Any qw( LoadFile );
 
 use_ok('App::Jiffy');
@@ -55,20 +59,25 @@ subtest 'add_entry' => sub {
   };
 };
 subtest 'timesheet' => sub {
+  ok $db->drop, 'cleared db';
 
   subtest 'for multiple days' => sub {
     # Seed db
     my $now = DateTime->now;
-    App::Jiffy::TimeEntry->new(
-      title      => 'Beep Boop',
-      start_time => $now->clone->subtract( days => 1 ),
-      cfg        => $cfg,
-    )->save;
-    App::Jiffy::TimeEntry->new(
-      title      => 'Beep Boop',
-      start_time => $now->clone,
-      cfg        => $cfg,
-    )->save;
+    generate($cfg,[
+      {
+        start_time => {
+          days => 1,
+        },
+      },
+      {
+        start_time => {
+          hours => 23,
+        },
+        title => 'done',
+      },
+      {}    # Default Entry
+    ] );
 
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet(2);
