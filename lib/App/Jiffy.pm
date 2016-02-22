@@ -153,6 +153,47 @@ sub time_sheet {
   App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
+sub search {
+  my $self = shift;
+  my $query_text = shift;
+  my $options = shift;
+  my $days;
+  if ( ref $options ne 'HASH' ) {
+    $days = $options;
+    undef $options;
+  } else {
+    $days = $options->{days};
+  }
+
+  my $from_date = DateTime->today;
+
+  if ( defined $days ) {
+    $from_date->subtract( days => $days );
+  }
+
+  my @entries = App::Jiffy::TimeEntry::search(
+    $self->cfg,
+    query => {
+      start_time => { '$gt' => $from_date, },
+      title => {
+        '$not' => $self->terminator_regex,
+      },
+      title => qr/$query_text/,
+    },
+    sort => {
+      start_time => 1,
+    },
+  );
+
+  # Header
+  if ($days) {
+    print "The past " . $days . " days' timesheet:\n\n";
+  } else {
+    print "Today's timesheet:\n\n";
+  }
+
+  App::Jiffy::View::Timesheet::render(\@entries, $options);
+}
 
 sub run {
   my $self = shift;
@@ -233,25 +274,21 @@ The following are methods available on the C<App::Jiffy> object.
 
 C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
 
-=cut
-
 =head2 current_time
 
 C<current_time> will print out the elapsed time for the current task (AKA the time since the last entry was created).
-
-=cut
 
 =head2 time_sheet
 
 C<time_sheet> will print out a time sheet including the time spent for each C<TimeEntry>.
 
-=cut
+=head2 search( C<$query_text>, C<$days> )
+
+The C<search> subcommand will look for the given C<$query_text> in the past C<$days> number of days. It will treat the C<$query_text> argument as a regex.
 
 =head2 run
 
 C<run> will start an instance of the Jiffy app.
-
-=cut
 
 =head1 AUTHOR
 

@@ -96,4 +96,85 @@ subtest 'timesheet' => sub {
   };
 };
 
+subtest 'search' => sub {
+
+  subtest 'w/ regex' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Stuff',
+      },
+      {
+        title => 'Company B - Other Stuff',
+      },
+      {
+        title => 'Company A  - More Stuff',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('^Company\sA\s*-');
+    };
+
+    unlike $stdout, qr/Company B/m, 'Didn\'t print other entries';
+    like $stdout, qr/- Stuff$/m, 'Found first entry';
+    like $stdout, qr/- More Stuff$/m, 'Found second entry';
+  };
+
+  subtest 'w/ plain text' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Stuff',
+      },
+      {
+        title => 'Company B - Other Stuff',
+      },
+      {
+        title => 'Company A  - More Stuff',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('Company A');
+    };
+
+    unlike $stdout, qr/Company B/m, 'Didn\'t print other entries';
+    like $stdout, qr/- Stuff$/m, 'Found first entry';
+    like $stdout, qr/- More Stuff$/m, 'Found second entry';
+  };
+
+  subtest 'w/ multiple days' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Foo',
+        start_time => {
+          days => 3,
+        },
+      },
+      {
+        title => 'Company C - Bar',
+        start_time => {
+          days => 1,
+        },
+      },
+      {
+        title => 'Company B - Baz',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('^Company \w -', 2);
+    };
+
+    unlike $stdout, qr/Company A/m, 'Didn\'t print older entry';
+    like $stdout, qr/Company C/m, 'Found one day old entry';
+    like $stdout, qr/Company B/m, 'Found today\'s entry';
+  };
+};
+
 done_testing;
