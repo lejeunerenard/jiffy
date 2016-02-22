@@ -185,6 +185,11 @@ sub search {
     },
   );
 
+  if ( not @entries ) {
+    print "No Entries Found\n";
+    return;
+  }
+
   # Header
   if ($days) {
     print "The past " . $days . " days' timesheet:\n\n";

@@ -175,6 +175,23 @@ subtest 'search' => sub {
     like $stdout, qr/Company C/m, 'Found one day old entry';
     like $stdout, qr/Company B/m, 'Found today\'s entry';
   };
+
+  subtest 'w/ no matches' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      { title => 'Foo', },
+      { title => 'Bar', },
+      { title => 'Biz', },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('Baz');
+    };
+
+    unlike $stdout, qr/Foo|Bar|Biz/m, 'Didn\'t report entries';
+    like $stdout, qr/No Entries Found/m, 'Shows "Not Found" message';
+  };
 };
 
 done_testing;
