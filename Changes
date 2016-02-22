@@ -2,6 +2,13 @@ Revision history for App-Jiffy
 
 {{$NEXT}}
 
+0.03  2016-02-22 14:45:04 CST
+        - Added search and timesheet subcommands
+        - Fixed add_entry timezone bug
+        - Moved duration calculation into TimeEntry
+        - Added entry's title to current subcommand output
+        - Added tests
+
 0.02  2015-04-06 14:48:30 CDT
         - Added minimalist HTTP server ( AKA `jiffyd` )
         - Added docs

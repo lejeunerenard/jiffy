@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use 5.008_005;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
