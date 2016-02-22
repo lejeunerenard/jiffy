@@ -211,6 +211,17 @@ sub run {
     return $self->time_sheet({
       verbose => $verbose,
     }, @args);
+  } elsif ( $args[0] eq 'search' ) {
+    shift @args;
+
+    my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
+
+    my $query_text = shift @args;
+
+    return $self->search($query_text, {
+      verbose => $verbose,
+    }, @args);
   }
 
   my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
