@@ -45,6 +45,10 @@ The following are methods available on the `App::Jiffy` object.
 
 `time_sheet` will print out a time sheet including the time spent for each `TimeEntry`.
 
+## search( `$query_text`, `$days` )
+
+The `search` subcommand will look for the given `$query_text` in the past `$days` number of days. It will treat the `$query_text` argument as a regex.
+
 ## run
 
 `run` will start an instance of the Jiffy app.

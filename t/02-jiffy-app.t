@@ -6,6 +6,10 @@ use Test::Exception;
 
 use Capture::Tiny ':all';
 
+use lib qw{ ./t/lib };
+
+use CreateTimeEntries qw/generate/;
+
 use YAML::Any qw( LoadFile );
 
 use_ok('App::Jiffy');
@@ -55,20 +59,25 @@ subtest 'add_entry' => sub {
   };
 };
 subtest 'timesheet' => sub {
+  ok $db->drop, 'cleared db';
 
   subtest 'for multiple days' => sub {
     # Seed db
     my $now = DateTime->now;
-    App::Jiffy::TimeEntry->new(
-      title      => 'Beep Boop',
-      start_time => $now->clone->subtract( days => 1 ),
-      cfg        => $cfg,
-    )->save;
-    App::Jiffy::TimeEntry->new(
-      title      => 'Beep Boop',
-      start_time => $now->clone,
-      cfg        => $cfg,
-    )->save;
+    generate($cfg,[
+      {
+        start_time => {
+          days => 1,
+        },
+      },
+      {
+        start_time => {
+          hours => 23,
+        },
+        title => 'done',
+      },
+      {}    # Default Entry
+    ] );
 
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet(2);
@@ -84,6 +93,104 @@ subtest 'timesheet' => sub {
     };
 
     like $stdout, qr/\d{1,2}:\d{2}/, 'found times';
+  };
+};
+
+subtest 'search' => sub {
+
+  subtest 'w/ regex' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Stuff',
+      },
+      {
+        title => 'Company B - Other Stuff',
+      },
+      {
+        title => 'Company A  - More Stuff',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('^Company\sA\s*-');
+    };
+
+    unlike $stdout, qr/Company B/m, 'Didn\'t print other entries';
+    like $stdout, qr/- Stuff$/m, 'Found first entry';
+    like $stdout, qr/- More Stuff$/m, 'Found second entry';
+  };
+
+  subtest 'w/ plain text' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Stuff',
+      },
+      {
+        title => 'Company B - Other Stuff',
+      },
+      {
+        title => 'Company A  - More Stuff',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('Company A');
+    };
+
+    unlike $stdout, qr/Company B/m, 'Didn\'t print other entries';
+    like $stdout, qr/- Stuff$/m, 'Found first entry';
+    like $stdout, qr/- More Stuff$/m, 'Found second entry';
+  };
+
+  subtest 'w/ multiple days' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      {
+        title => 'Company A - Foo',
+        start_time => {
+          days => 3,
+        },
+      },
+      {
+        title => 'Company C - Bar',
+        start_time => {
+          days => 1,
+        },
+      },
+      {
+        title => 'Company B - Baz',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('^Company \w -', 2);
+    };
+
+    unlike $stdout, qr/Company A/m, 'Didn\'t print older entry';
+    like $stdout, qr/Company C/m, 'Found one day old entry';
+    like $stdout, qr/Company B/m, 'Found today\'s entry';
+  };
+
+  subtest 'w/ no matches' => sub {
+    # Populate
+    ok $db->drop, 'cleared db';
+    generate($cfg,[
+      { title => 'Foo', },
+      { title => 'Bar', },
+      { title => 'Biz', },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->search('Baz');
+    };
+
+    unlike $stdout, qr/Foo|Bar|Biz/m, 'Didn\'t report entries';
+    like $stdout, qr/No Entries Found/m, 'Shows "Not Found" message';
   };
 };
 

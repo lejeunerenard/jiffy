@@ -7,6 +7,7 @@ use 5.008_005;
 our $VERSION = '0.02';
 
 use App::Jiffy::TimeEntry;
+use App::Jiffy::View::Timesheet;
 use YAML::Any qw( LoadFile );
 
 use Getopt::Long;
@@ -128,6 +129,9 @@ sub time_sheet {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
+      title => {
+        '$not' => $self->terminator_regex,
+      },
     },
     sort => {
       start_time => 1,
@@ -146,39 +150,54 @@ sub time_sheet {
     print "Date: " . $current_day->mdy('/') . "\n";
   }
 
-  foreach my $entry (@entries) {
+  App::Jiffy::View::Timesheet::render(\@entries, $options);
+}
 
-    # Skip terminators
-    next if $entry->title =~ $self->terminator_regex;
-
-    my $start_time = $entry->start_time->clone;
-
-    if (
-      DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) )
-      == -1 )
-    {
-      $current_day = $start_time->truncate( to => 'day' );
-      print "\nDate: " . $current_day->mdy('/') . "\n";
-    }
-
-    # Get the deltas
-    my %deltas = $entry->duration->deltas;
-    foreach my $unit ( keys %deltas ) {
-      next unless $deltas{$unit};
-      print $deltas{$unit} . " " . $unit . " ";
-    }
-
-    # Print entry
-    if ( $options->{verbose} ) {
-      print "\t " .
-      # Time
-        $entry->start_time->hour . ":" . $entry->start_time->minute .
-      # Title
-        "\t" . $entry->title . "\n";
-    } else {
-      print "\t " . $entry->title . "\n";
-    }
+sub search {
+  my $self = shift;
+  my $query_text = shift;
+  my $options = shift;
+  my $days;
+  if ( ref $options ne 'HASH' ) {
+    $days = $options;
+    undef $options;
+  } else {
+    $days = shift;
   }
+
+  my $from_date = DateTime->today;
+
+  if ( defined $days ) {
+    $from_date->subtract( days => $days );
+  }
+
+  my @entries = App::Jiffy::TimeEntry::search(
+    $self->cfg,
+    query => {
+      start_time => { '$gt' => $from_date, },
+      title => {
+        '$not' => $self->terminator_regex,
+      },
+      title => qr/$query_text/,
+    },
+    sort => {
+      start_time => 1,
+    },
+  );
+
+  if ( not @entries ) {
+    print "No Entries Found\n";
+    return;
+  }
+
+  # Header
+  if ($days) {
+    print "The past " . $days . " days' timesheet:\n\n";
+  } else {
+    print "Today's timesheet:\n\n";
+  }
+
+  App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
 sub run {
@@ -195,6 +214,17 @@ sub run {
     $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
 
     return $self->time_sheet({
+      verbose => $verbose,
+    }, @args);
+  } elsif ( $args[0] eq 'search' ) {
+    shift @args;
+
+    my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
+
+    my $query_text = shift @args;
+
+    return $self->search($query_text, {
       verbose => $verbose,
     }, @args);
   }
@@ -260,25 +290,21 @@ The following are methods available on the C<App::Jiffy> object.
 
 C<add_entry> will create a new TimeEntry with the current time as the entry's start_time.
 
-=cut
-
 =head2 current_time
 
 C<current_time> will print out the elapsed time for the current task (AKA the time since the last entry was created).
-
-=cut
 
 =head2 time_sheet
 
 C<time_sheet> will print out a time sheet including the time spent for each C<TimeEntry>.
 
-=cut
+=head2 search( C<$query_text>, C<$days> )
+
+The C<search> subcommand will look for the given C<$query_text> in the past C<$days> number of days. It will treat the C<$query_text> argument as a regex.
 
 =head2 run
 
 C<run> will start an instance of the Jiffy app.
-
-=cut
 
 =head1 AUTHOR
 
