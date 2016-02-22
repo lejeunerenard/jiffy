@@ -162,7 +162,7 @@ sub search {
     $days = $options;
     undef $options;
   } else {
-    $days = $options->{days};
+    $days = shift;
   }
 
   my $from_date = DateTime->today;
