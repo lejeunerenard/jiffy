@@ -109,7 +109,14 @@ sub current_time {
 
 sub time_sheet {
   my $self = shift;
-  my $from = shift;
+  my $options = shift;
+  my $from;
+  if ( ref $options ne 'HASH' ) {
+    $from = $options;
+    undef $options;
+  } else {
+    $from = shift;
+  }
 
   my $from_date = DateTime->today;
 
@@ -127,6 +134,7 @@ sub time_sheet {
     },
   );
 
+  # Header
   if ($from) {
     print "The past " . $from . " days' timesheet:\n\n";
   } else {
@@ -159,7 +167,17 @@ sub time_sheet {
       next unless $deltas{$unit};
       print $deltas{$unit} . " " . $unit . " ";
     }
-    print "\t " . $entry->title . "\n";
+
+    # Print entry
+    if ( $options->{verbose} ) {
+      print "\t " .
+      # Time
+        $entry->start_time->hour . ":" . $entry->start_time->minute .
+      # Title
+        "\t" . $entry->title . "\n";
+    } else {
+      print "\t " . $entry->title . "\n";
+    }
   }
 }
 
@@ -172,7 +190,13 @@ sub run {
     return $self->current_time(@args);
   } elsif ( $args[0] eq 'timesheet' ) {
     shift @args;
-    return $self->time_sheet(@args);
+
+    my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
+
+    return $self->time_sheet({
+      verbose => $verbose,
+    }, @args);
   }
 
   my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
