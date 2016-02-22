@@ -7,6 +7,7 @@ use 5.008_005;
 our $VERSION = '0.02';
 
 use App::Jiffy::TimeEntry;
+use App::Jiffy::View::Timesheet;
 use YAML::Any qw( LoadFile );
 
 use Getopt::Long;
@@ -128,6 +129,9 @@ sub time_sheet {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
+      title => {
+        '$not' => $self->terminator_regex,
+      },
     },
     sort => {
       start_time => 1,
@@ -146,40 +150,9 @@ sub time_sheet {
     print "Date: " . $current_day->mdy('/') . "\n";
   }
 
-  foreach my $entry (@entries) {
-
-    # Skip terminators
-    next if $entry->title =~ $self->terminator_regex;
-
-    my $start_time = $entry->start_time->clone;
-
-    if (
-      DateTime->compare( $current_day, $start_time->truncate( to => 'day' ) )
-      == -1 )
-    {
-      $current_day = $start_time->truncate( to => 'day' );
-      print "\nDate: " . $current_day->mdy('/') . "\n";
-    }
-
-    # Get the deltas
-    my %deltas = $entry->duration->deltas;
-    foreach my $unit ( keys %deltas ) {
-      next unless $deltas{$unit};
-      print $deltas{$unit} . " " . $unit . " ";
-    }
-
-    # Print entry
-    if ( $options->{verbose} ) {
-      print "\t " .
-      # Time
-        $entry->start_time->hour . ":" . $entry->start_time->minute .
-      # Title
-        "\t" . $entry->title . "\n";
-    } else {
-      print "\t " . $entry->title . "\n";
-    }
-  }
+  App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
+
 
 sub run {
   my $self = shift;
