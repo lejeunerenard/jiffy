@@ -25,8 +25,28 @@ sub render {
     }
 
     # Get the deltas
-    my %deltas = $entry->duration->deltas;
-    foreach my $unit ( keys %deltas ) {
+    my $duration = $entry->duration;
+
+    if ( $options->{round} ) {
+      # Round seconds
+      my $seconds = $duration->seconds;
+      if ( $seconds >= 30 ) {
+        $duration->add( minutes => 1 );
+      }
+      $duration->subtract( seconds => $seconds );
+
+      # Round minutes
+      my $minutes = $duration->minutes;
+      if ( $minutes % 15 >= 15 / 2 ) {
+        $duration->add( minutes => 15 - ($minutes % 15) );
+      } else {
+        $duration->subtract( minutes => $minutes % 15 );
+      }
+    }
+
+    my %deltas = $duration->deltas;
+
+    foreach my $unit ( sort keys %deltas ) {
       next unless $deltas{$unit};
       print $deltas{$unit} . " " . $unit . " ";
     }
