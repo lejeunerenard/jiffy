@@ -38,6 +38,15 @@ has terminator_regex => (
   },
 );
 
+sub remove_terminators {
+  my $self = shift;
+  return (
+    title => {
+      '$not' => $self->terminator_regex,
+    }
+  )
+}
+
 sub add_entry {
   my $self    = shift;
   my $options = shift;
@@ -129,9 +138,7 @@ sub time_sheet {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
-      title => {
-        '$not' => $self->terminator_regex,
-      },
+      $self->remove_terminators,
     },
     sort => {
       start_time => 1,
@@ -175,9 +182,7 @@ sub search {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
-      title => {
-        '$not' => $self->terminator_regex,
-      },
+      $self->remove_terminators,
       title => qr/$query_text/,
     },
     sort => {

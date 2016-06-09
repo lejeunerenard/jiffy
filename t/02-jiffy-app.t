@@ -85,7 +85,7 @@ subtest 'timesheet' => sub {
 
     like $stdout, qr/\d{2}\/\d{2}\/\d{4}/, 'returns datetimes';
   };
-  subtest 'can be verbase' => sub {
+  subtest 'can be verbose' => sub {
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet({
         verbose => 1,
