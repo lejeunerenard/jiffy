@@ -9,8 +9,19 @@ use DateTime;
 sub render {
   my $entries = shift;
   my $options = shift;
+  my $from = $options->{from};
+
+  # Header
+  if ($from) {
+    print "The past " . $from . " days' timesheet:\n\n";
+  } else {
+    print "Today's timesheet:\n\n";
+  }
 
   my $current_day = $entries->[0]->start_time->clone->truncate( to => 'day' );
+  if ($from) {
+    print "Date: " . $current_day->mdy('/') . "\n";
+  }
 
   foreach my $entry (@$entries) {
 

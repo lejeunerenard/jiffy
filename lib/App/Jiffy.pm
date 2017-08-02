@@ -145,18 +145,7 @@ sub time_sheet {
     },
   );
 
-  # Header
-  if ($from) {
-    print "The past " . $from . " days' timesheet:\n\n";
-  } else {
-    print "Today's timesheet:\n\n";
-  }
-
-  my $current_day = $entries[0]->start_time->clone->truncate( to => 'day' );
-  if ($from) {
-    print "Date: " . $current_day->mdy('/') . "\n";
-  }
-
+  $options->{from} = $from;
   App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
@@ -195,13 +184,7 @@ sub search {
     return;
   }
 
-  # Header
-  if ($days) {
-    print "The past " . $days . " days' timesheet:\n\n";
-  } else {
-    print "Today's timesheet:\n\n";
-  }
-
+  $options->{from} = $days;
   App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
