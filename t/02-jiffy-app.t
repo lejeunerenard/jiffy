@@ -27,7 +27,7 @@ subtest 'prep' => sub {
 };
 
 subtest 'add_entry' => sub {
-  subtest 'works on edge cases' => sub {
+  subtest 'works on UTC edge cases' => sub {
     {
       no warnings 'redefine';
       local *DateTime::now = sub { DateTime->new(
@@ -52,8 +52,8 @@ subtest 'add_entry' => sub {
       );
       is scalar @entries, 1, 'created timeEntry w/ time option';
 
-      is $entries[0]->start_time->hour, 0, 'got UTC hour';
-      is $entries[0]->start_time->day, 11, 'got UTC day';
+      is $entries[0]->start_time->hour, 18, 'got Chicago hour';
+      is $entries[0]->start_time->day, 10, 'got Chicago day';
       ok $entries[0]->duration->is_positive, 'Doesn\'t go back in time';
     }
   };

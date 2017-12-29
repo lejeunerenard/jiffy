@@ -187,8 +187,11 @@ sub search {
   # Return undef if nothing was found
   return unless $entries;
 
+  my $LocalTZ = DateTime::TimeZone->new(name => 'local'); # For caching
+
 # @TODO create a subclass of the MongoDB cursor that allows chaining of results like MongoDB
   map {
+    $_->{start_time}->set_time_zone($LocalTZ); # Convert to local tz
     App::Jiffy::TimeEntry->new(
       id         => $_->{_id},
       title      => $_->{title},
