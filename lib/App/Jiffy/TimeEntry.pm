@@ -35,6 +35,10 @@ has title => (
   required => 1,
 );
 
+has _duration => (
+  is       => 'rw',
+);
+
 has cfg => ( is => 'ro', );
 
 =head2 db
@@ -85,6 +89,15 @@ C<duration> returns the time between this entry and the next.
 
 sub duration {
   my $self = shift;
+  my $set = shift;
+
+  if ($set) {
+    $self->_duration($set);
+  }
+
+  if ($self->_duration) {
+    return $self->_duration;
+  }
 
   my @entry_after = App::Jiffy::TimeEntry::search(
     $self->cfg,

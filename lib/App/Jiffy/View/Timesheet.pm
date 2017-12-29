@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use App::Jiffy::TimeEntry;
+use App::Jiffy::Util::Duration qw/round/;
 use DateTime;
 
 sub render {
@@ -37,24 +38,6 @@ sub render {
 
     # Get the deltas
     my $duration = $entry->duration;
-
-    if ( $options->{round} ) {
-      # Round seconds
-      my $seconds = $duration->seconds;
-      if ( $seconds >= 30 ) {
-        $duration->add( minutes => 1 );
-      }
-      $duration->subtract( seconds => $seconds );
-
-      # Round minutes
-      my $minutes = $duration->minutes;
-      if ( $minutes % 15 >= 15 / 2 ) {
-        $duration->add( minutes => 15 - ($minutes % 15) );
-      } else {
-        $duration->subtract( minutes => $minutes % 15 );
-      }
-    }
-
     my %deltas = $duration->deltas;
 
     foreach my $unit ( sort keys %deltas ) {

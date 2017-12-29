@@ -145,6 +145,10 @@ sub time_sheet {
     },
   );
 
+  if ($options->{round}) {
+    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  }
+
   $options->{from} = $from;
   App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
@@ -178,6 +182,10 @@ sub search {
       start_time => 1,
     },
   );
+
+  if ($options->{round}) {
+    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  }
 
   if ( not @entries ) {
     print "No Entries Found\n";
