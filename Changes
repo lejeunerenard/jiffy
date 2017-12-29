@@ -2,6 +2,10 @@ Revision history for App-Jiffy
 
 {{$NEXT}}
 
+0.04  2017-12-29 11:45:04 CST
+        - Added rounding to durations
+        - Added JSON export
+
 0.03  2016-02-22 14:45:04 CST
         - Added search and timesheet subcommands
         - Fixed add_entry timezone bug

@@ -4,11 +4,14 @@ use strict;
 use warnings;
 
 use 5.008_005;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
+use App::Jiffy::Util::Duration qw/round/;
+
 use YAML::Any qw( LoadFile );
+use JSON::MaybeXS 'JSON';
 
 use Getopt::Long;
 Getopt::Long::Configure("pass_through");
@@ -37,6 +40,15 @@ has terminator_regex => (
     ^x$/x;
   },
 );
+
+sub remove_terminators {
+  my $self = shift;
+  return (
+    title => {
+      '$not' => $self->terminator_regex,
+    }
+  )
+}
 
 sub add_entry {
   my $self    = shift;
@@ -129,28 +141,24 @@ sub time_sheet {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
-      title => {
-        '$not' => $self->terminator_regex,
-      },
+      $self->remove_terminators,
     },
     sort => {
       start_time => 1,
     },
   );
 
-  # Header
-  if ($from) {
-    print "The past " . $from . " days' timesheet:\n\n";
+  if ($options->{round}) {
+    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  }
+
+  if ($options->{json}) {
+    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
+    print $json->encode(\@entries);
   } else {
-    print "Today's timesheet:\n\n";
+    $options->{from} = $from;
+    App::Jiffy::View::Timesheet::render( \@entries, $options );
   }
-
-  my $current_day = $entries[0]->start_time->clone->truncate( to => 'day' );
-  if ($from) {
-    print "Date: " . $current_day->mdy('/') . "\n";
-  }
-
-  App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
 sub search {
@@ -175,9 +183,7 @@ sub search {
     $self->cfg,
     query => {
       start_time => { '$gt' => $from_date, },
-      title => {
-        '$not' => $self->terminator_regex,
-      },
+      $self->remove_terminators,
       title => qr/$query_text/,
     },
     sort => {
@@ -185,19 +191,22 @@ sub search {
     },
   );
 
+  if ($options->{round}) {
+    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  }
+
   if ( not @entries ) {
     print "No Entries Found\n";
     return;
   }
 
-  # Header
-  if ($days) {
-    print "The past " . $days . " days' timesheet:\n\n";
+  if ($options->{json}) {
+    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
+    print $json->encode(\@entries);
   } else {
-    print "Today's timesheet:\n\n";
+    $options->{from} = $days;
+    App::Jiffy::View::Timesheet::render( \@entries, $options );
   }
-
-  App::Jiffy::View::Timesheet::render(\@entries, $options);
 }
 
 sub run {
@@ -211,21 +220,25 @@ sub run {
     shift @args;
 
     my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
 
     return $self->time_sheet({
       verbose => $verbose,
+      round => $round,
+      json => $json,
     }, @args);
   } elsif ( $args[0] eq 'search' ) {
     shift @args;
 
     my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
 
     my $query_text = shift @args;
 
     return $self->search($query_text, {
       verbose => $verbose,
+      round => $round,
+      json => $json,
     }, @args);
   }
 

@@ -61,31 +61,31 @@ subtest 'add_entry' => sub {
 subtest 'timesheet' => sub {
   ok $db->drop, 'cleared db';
 
-  subtest 'for multiple days' => sub {
-    # Seed db
-    my $now = DateTime->now;
-    generate($cfg,[
-      {
-        start_time => {
-          days => 1,
-        },
+  # Seed db
+  my $now = DateTime->now;
+  generate($cfg,[
+    {
+      start_time => {
+        days => 1,
       },
-      {
-        start_time => {
-          hours => 23,
-        },
-        title => 'done',
+    },
+    {
+      start_time => {
+        hours => 23,
       },
-      {}    # Default Entry
-    ] );
+      title => 'done',
+    },
+    {}    # Default Entry
+  ] );
 
+  subtest 'for multiple days' => sub {
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet(2);
     };
 
     like $stdout, qr/\d{2}\/\d{2}\/\d{4}/, 'returns datetimes';
   };
-  subtest 'can be verbase' => sub {
+  subtest 'can be verbose' => sub {
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet({
         verbose => 1,
@@ -93,6 +93,51 @@ subtest 'timesheet' => sub {
     };
 
     like $stdout, qr/\d{1,2}:\d{2}/, 'found times';
+  };
+  subtest 'can be rounded' => sub {
+    ok $db->drop, 'cleared db';
+
+    # Seed db
+    my $now = DateTime->now->subtract(hours => 1);
+    generate($cfg,[
+      {
+        start_time => sub {
+          return $now->clone()->set_minute(0);
+        },
+      },
+      {
+        start_time => sub {
+          return $now->clone()->set_minute(23);
+        },
+        title => 'done',
+      },
+      {
+        start_time => sub {
+          return $now->clone()->set({
+              minute => 30,
+              second => 0,
+            });
+        },
+      },
+      {
+        start_time => sub {
+          return $now->clone()->set({
+              minute => 37,
+              second => 30,
+            });
+        },
+        title => 'done',
+      },
+    ]);
+
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->time_sheet({
+          round => 1,
+      });
+    };
+
+    like $stdout, qr/30 minutes/, 'found minute rounded time';
+    like $stdout, qr/15 minutes/, 'found second then minute rounded time';
   };
 };
 

@@ -38,6 +38,7 @@
       "runtime" : {
          "requires" : {
             "Dancer" : "0",
+            "JSON::MaybeXS" : "0",
             "MongoDB" : "0",
             "Moo" : "0",
             "YAML::Any" : "0",
@@ -63,6 +64,6 @@
          "web" : "https://github.com/lejeunerenard/jiffy"
       }
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }
 
