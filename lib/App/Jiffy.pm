@@ -8,6 +8,8 @@ our $VERSION = '0.03';
 
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
+use App::Jiffy::Util::Duration qw/round/;
+
 use YAML::Any qw( LoadFile );
 use JSON::MaybeXS 'JSON';
 
