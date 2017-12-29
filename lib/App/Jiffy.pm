@@ -9,6 +9,7 @@ our $VERSION = '0.03';
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
 use YAML::Any qw( LoadFile );
+use JSON::MaybeXS 'JSON';
 
 use Getopt::Long;
 Getopt::Long::Configure("pass_through");
@@ -149,8 +150,13 @@ sub time_sheet {
     @entries = map { $_->duration(round($_->duration)); $_ } @entries;
   }
 
-  $options->{from} = $from;
-  App::Jiffy::View::Timesheet::render(\@entries, $options);
+  if ($options->{json}) {
+    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
+    print $json->encode(\@entries);
+  } else {
+    $options->{from} = $from;
+    App::Jiffy::View::Timesheet::render( \@entries, $options );
+  }
 }
 
 sub search {
@@ -192,8 +198,13 @@ sub search {
     return;
   }
 
-  $options->{from} = $days;
-  App::Jiffy::View::Timesheet::render(\@entries, $options);
+  if ($options->{json}) {
+    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
+    print $json->encode(\@entries);
+  } else {
+    $options->{from} = $days;
+    App::Jiffy::View::Timesheet::render( \@entries, $options );
+  }
 }
 
 sub run {
@@ -207,23 +218,25 @@ sub run {
     shift @args;
 
     my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
 
     return $self->time_sheet({
       verbose => $verbose,
       round => $round,
+      json => $json,
     }, @args);
   } elsif ( $args[0] eq 'search' ) {
     shift @args;
 
     my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, );
+    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
 
     my $query_text = shift @args;
 
     return $self->search($query_text, {
       verbose => $verbose,
       round => $round,
+      json => $json,
     }, @args);
   }
 

@@ -218,4 +218,23 @@ sub last_entry {
     cfg        => $cfg,
   );
 }
+
+=head2 TO_JSON
+
+C<TO_JSON> will return the entry as a JSON convertible hash.
+
+=cut
+
+sub TO_JSON {
+  my $self = shift;
+
+  {
+    start_time => $self->start_time->iso8601,
+    title => $self->title,
+    duration => {
+      $self->duration->deltas
+    },
+  }
+}
+
 1;
