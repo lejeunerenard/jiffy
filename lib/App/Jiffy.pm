@@ -62,7 +62,9 @@ sub add_entry {
   }
 
   my $start_time;
-  my $now = DateTime->now( time_zone => 'local' );
+
+  my $LocalTZ = DateTime::TimeZone->new( name => 'local' ); # For caching
+  my $now = DateTime->now( time_zone => $LocalTZ );
 
   if ( $options->{time} ) {
     require DateTime::Format::Strptime;
@@ -72,7 +74,7 @@ sub add_entry {
     # First try H:M:S
     my $strp = DateTime::Format::Strptime->new(
       pattern   => '%T',
-      time_zone => 'local',
+      time_zone => $LocalTZ,
     );
     $start_time = $strp->parse_datetime( $options->{time} );
 
@@ -80,7 +82,7 @@ sub add_entry {
     if ( not $start_time ) {
       my $strp = DateTime::Format::Strptime->new(
         pattern   => '%R',
-        time_zone => 'local',
+        time_zone => $LocalTZ,
       );
       $start_time = $strp->parse_datetime( $options->{time} );
     }
