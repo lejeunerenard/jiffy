@@ -13,18 +13,10 @@ our @EXPORT_OK = qw(
 
 sub test_db_or_skip {
   my $cfg = shift;
-  eval {
-    my $client = MongoDB::MongoClient->new;
-    my $db     = $client->get_database($cfg->{db});
-  };
-
-  if ($@) {
-    ( my $err = $@ ) =~ s/\n//g;
-    if ( $err =~ /couldn't connect|connection refused/i ) {
-      $err = "no mongod on localhost:27017";
-    }
-
-    plan skip_all => "$err";
+  # source:
+  # https://metacpan.org/pod/distribution/MongoDB/lib/MongoDB/Upgrading.pod
+  plan skip_all => 'no mongod' unless eval {
+    MongoDB->connect->db($cfg->{db})->run_command([ ismaster => 1 ])
   }
 }
 

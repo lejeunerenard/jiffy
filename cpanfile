@@ -1,6 +1,6 @@
 requires 'perl', '5.008005';
 
-requires 'MongoDB';
+requires 'MongoDB', '>= 1.0.0';
 requires 'Moo';
 requires 'YAML::Any';
 requires 'Dancer';
