@@ -2,6 +2,9 @@ Revision history for App-Jiffy
 
 {{$NEXT}}
 
+0.06  2018-04-06 16:05:57 CDT
+        - Fix tests to skip if no MongoDB is present
+
 0.05  2017-12-29 13:10:23 CST
         - Use local timezone in `search()`
 
