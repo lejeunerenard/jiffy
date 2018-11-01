@@ -133,7 +133,7 @@ sub time_sheet {
     $from = shift;
   }
 
-  my $from_date = DateTime->today;
+  my $from_date = DateTime->today( time_zone => 'local' );
 
   if ( defined $from ) {
     $from_date->subtract( days => $from );
@@ -175,7 +175,7 @@ sub search {
     $days = shift;
   }
 
-  my $from_date = DateTime->today;
+  my $from_date = DateTime->today( time_zone => 'local' );
 
   if ( defined $days ) {
     $from_date->subtract( days => $days );
