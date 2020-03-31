@@ -65,6 +65,36 @@ subtest 'add_entry' => sub {
     }
   };
 };
+
+subtest 'current' => sub {
+  ok $db->drop, 'cleared db';
+
+  # Seed db
+  generate(
+    $cfg,
+    [ {
+        start_time => {
+          days => 1,
+        },
+      },
+      {
+        start_time => {
+          hours => 23,
+        },
+        title => 'done',
+      },
+      { title => 'foobarbaz' } # Current Entry
+    ] );
+
+  subtest 'returns current entry title' => sub {
+    my ( $stdout, $stderr, $exit ) = capture {
+      $app->current_time();
+    };
+
+    like $stdout, qr/foobarbaz/, 'returns title';
+  };
+};
+
 subtest 'timesheet' => sub {
   ok $db->drop, 'cleared db';
 
