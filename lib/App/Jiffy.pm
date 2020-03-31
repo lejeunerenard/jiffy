@@ -7,7 +7,7 @@ use utf8;
 use open ':std', ':encoding(utf8)';
 
 use 5.008_005;
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
