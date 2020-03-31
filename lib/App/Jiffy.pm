@@ -215,33 +215,51 @@ sub run {
   my $self = shift;
   my @args = @_;
 
-  if ( $args[0] eq 'current' ) {
-    shift @args;
-    return $self->current_time(@args);
-  } elsif ( $args[0] eq 'timesheet' ) {
-    shift @args;
+  if ($args[0]) {
+    if ( $args[0] eq 'current' ) {
+      shift @args;
+      return $self->current_time(@args);
+    } elsif ( $args[0] eq 'timesheet' ) {
+      shift @args;
 
-    my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
+      my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+      $p->getoptionsfromarray(
+        \@args,
+        'verbose' => \my $verbose,
+        'round'   => \my $round,
+        'json'    => \my $json
+      );
 
-    return $self->time_sheet({
-      verbose => $verbose,
-      round => $round,
-      json => $json,
-    }, @args);
-  } elsif ( $args[0] eq 'search' ) {
-    shift @args;
+      return $self->time_sheet( {
+          verbose => $verbose,
+          round   => $round,
+          json    => $json,
+        },
+        @args
+      );
+    } elsif ( $args[0] eq 'search' ) {
+      shift @args;
 
-    my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
-    $p->getoptionsfromarray( \@args, 'verbose' => \my $verbose, 'round' => \my $round, 'json' => \my $json);
+      my $p = Getopt::Long::Parser->new( config => ['pass_through'], );
+      $p->getoptionsfromarray(
+        \@args,
+        'verbose' => \my $verbose,
+        'round'   => \my $round,
+        'json'    => \my $json
+      );
 
-    my $query_text = shift @args;
+      my $query_text = shift @args;
 
-    return $self->search($query_text, {
-      verbose => $verbose,
-      round => $round,
-      json => $json,
-    }, @args);
+      return $self->search(
+        $query_text,
+        {
+          verbose => $verbose,
+          round   => $round,
+          json    => $json,
+        },
+        @args
+      );
+    }
   }
 
   my $p = Getopt::Long::Parser->new( config => ['pass_through'], );

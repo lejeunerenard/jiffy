@@ -1,6 +1,7 @@
 Revision history for App-Jiffy
 
 {{$NEXT}}
+        - Prevent warning when entering blank entry
 
 0.08  2018-10-31 19:32:13 PDT
         - Set timezone to `local` when displaying today's `timesheet`
