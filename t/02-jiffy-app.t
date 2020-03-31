@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use utf8;
+
 use Test::More;
 use Test::Deep;
 use Test::Exception;
@@ -29,6 +31,12 @@ my $app    = App::Jiffy->new( cfg => $cfg, );
 
 subtest 'prep' => sub {
   ok $db->drop, 'cleared db';
+};
+
+subtest 'STDOUT' => sub {
+  my @layers = PerlIO::get_layers(STDOUT);
+
+  ok grep( /utf8/, @layers ), 'set to utf8';
 };
 
 subtest 'add_entry' => sub {
