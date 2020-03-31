@@ -15,7 +15,7 @@ sub generate {
 
   my $now = DateTime->now(time_zone => 'local');
 
-  for my $i (0 .. @$entries) {
+  for my $i (0 .. $#$entries) {
     my $entry = $entries->[$i];
     my $start_time;
 
