@@ -46,8 +46,7 @@ sub remove_terminators {
   return (
     title => {
       '$not' => $self->terminator_regex,
-    }
-  )
+    } );
 }
 
 sub add_entry {
@@ -63,7 +62,7 @@ sub add_entry {
 
   my $start_time;
 
-  my $LocalTZ = DateTime::TimeZone->new( name => 'local' ); # For caching
+  my $LocalTZ = DateTime::TimeZone->new( name => 'local' );    # For caching
   my $now = DateTime->now( time_zone => $LocalTZ );
 
   if ( $options->{time} ) {
@@ -123,7 +122,7 @@ sub current_time {
 }
 
 sub time_sheet {
-  my $self = shift;
+  my $self    = shift;
   my $options = shift;
   my $from;
   if ( ref $options ne 'HASH' ) {
@@ -150,13 +149,13 @@ sub time_sheet {
     },
   );
 
-  if ($options->{round}) {
-    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  if ( $options->{round} ) {
+    @entries = map { $_->duration( round( $_->duration ) ); $_ } @entries;
   }
 
-  if ($options->{json}) {
-    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
-    print $json->encode(\@entries);
+  if ( $options->{json} ) {
+    my $json = JSON::MaybeXS->new( pretty => 1, convert_blessed => 1 );
+    print $json->encode( \@entries );
   } else {
     $options->{from} = $from;
     App::Jiffy::View::Timesheet::render( \@entries, $options );
@@ -164,9 +163,9 @@ sub time_sheet {
 }
 
 sub search {
-  my $self = shift;
+  my $self       = shift;
   my $query_text = shift;
-  my $options = shift;
+  my $options    = shift;
   my $days;
   if ( ref $options ne 'HASH' ) {
     $days = $options;
@@ -193,8 +192,8 @@ sub search {
     },
   );
 
-  if ($options->{round}) {
-    @entries = map { $_->duration(round($_->duration)); $_ } @entries;
+  if ( $options->{round} ) {
+    @entries = map { $_->duration( round( $_->duration ) ); $_ } @entries;
   }
 
   if ( not @entries ) {
@@ -202,9 +201,9 @@ sub search {
     return;
   }
 
-  if ($options->{json}) {
-    my $json = JSON::MaybeXS->new(pretty => 1, convert_blessed => 1);
-    print $json->encode(\@entries);
+  if ( $options->{json} ) {
+    my $json = JSON::MaybeXS->new( pretty => 1, convert_blessed => 1 );
+    print $json->encode( \@entries );
   } else {
     $options->{from} = $days;
     App::Jiffy::View::Timesheet::render( \@entries, $options );
@@ -215,7 +214,7 @@ sub run {
   my $self = shift;
   my @args = @_;
 
-  if ($args[0]) {
+  if ( $args[0] ) {
     if ( $args[0] eq 'current' ) {
       shift @args;
       return $self->current_time(@args);
