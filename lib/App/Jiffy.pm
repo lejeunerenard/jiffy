@@ -206,7 +206,7 @@ sub search {
     @entries = map { $_->duration( round( $_->duration ) ); $_ } @entries;
   }
 
-  if ( not @entries ) {
+  if ( not @entries and not $options->{json}) {
     print "No Entries Found\n";
     return;
   }
