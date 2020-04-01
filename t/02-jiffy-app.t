@@ -133,6 +133,12 @@ subtest 'timesheet' => sub {
     like $stdout, qr/\d{2}\/\d{2}\/\d{4}/, 'returns datetimes';
   };
 
+  subtest 'requires "from" to be a number' => sub {
+    my $from = 'bar';
+    dies_ok { $app->time_sheet($from) } 'returns error message';
+    throws_ok { $app->time_sheet($from) } qr/"From" argument \[ $from \]/, 'error message contains from value';
+  };
+
   subtest 'can be verbose' => sub {
     my ( $stdout, $stderr, $exit ) = capture {
       $app->time_sheet( {
@@ -275,6 +281,12 @@ subtest 'search' => sub {
     unlike $stdout, qr/Company A/m, 'Didn\'t print older entry';
     like $stdout,   qr/Company C/m, 'Found one day old entry';
     like $stdout,   qr/Company B/m, 'Found today\'s entry';
+  };
+
+  subtest 'requires "days" to be a number' => sub {
+    my $days = 'bar';
+    dies_ok { $app->search('', $days) } 'returns error message';
+    throws_ok { $app->search('', $days) } qr/"Days" argument \[ $days \]/, 'error message contains from value';
   };
 
   subtest 'w/ no matches' => sub {

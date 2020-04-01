@@ -15,6 +15,7 @@ use App::Jiffy::Util::Duration qw/round/;
 
 use YAML::Any qw( LoadFile );
 use JSON::MaybeXS 'JSON';
+use Scalar::Util qw( looks_like_number );
 
 use Getopt::Long;
 Getopt::Long::Configure("pass_through");
@@ -138,6 +139,9 @@ sub time_sheet {
   my $from_date = DateTime->today( time_zone => 'local' );
 
   if ( defined $from ) {
+    die '"From" argument [ ' . $from . ' ] must be a number'
+      unless looks_like_number($from);
+
     $from_date->subtract( days => $from );
   }
 
@@ -180,6 +184,9 @@ sub search {
   my $from_date = DateTime->today( time_zone => 'local' );
 
   if ( defined $days ) {
+    die '"Days" argument [ ' . $days . ' ] must be a number'
+      unless looks_like_number($days);
+
     $from_date->subtract( days => $days );
   }
 
