@@ -6,4 +6,11 @@ use warnings;
 use App::Jiffy;
 
 my $app = App::Jiffy->new;
-exit( $app->run(@ARGV) ? 0 : 1 );
+my $code = 0;
+eval {
+  $app->run(@ARGV);
+}; if (my $e = $@) {
+  warn $e;
+  $code = 1;
+}
+exit($code);
