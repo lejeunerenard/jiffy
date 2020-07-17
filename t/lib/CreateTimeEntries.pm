@@ -27,7 +27,7 @@ sub generate {
 
     # Default
     $start_time //=
-      $now->clone->subtract( hours => ( scalar(@$entries) - $i ) );
+      $now->clone->subtract( minutes => ( scalar(@$entries) - $i ) );
 
     App::Jiffy::TimeEntry->new(
       title => $entry->{title} // 'Beep Boop',
