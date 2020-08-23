@@ -50,7 +50,7 @@ sub parse_time {
     );
   }
 
-  return $start_time;
+  return $start_time // $now;
 }
 
 1;

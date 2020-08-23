@@ -21,11 +21,11 @@ my $db     = $client->get_database( $cfg->{db} );
 use_ok('App::Jiffy::Util::TimeParsing', qw/parse_time/);
 
 subtest 'parse_time' => sub {
-  is parse_time(), undef, 'returns undef by default';
-  is parse_time('arstien'), undef, 'returns undef with unparsable time';
-
   my $LocalTZ = DateTime::TimeZone->new( name => 'local' );    # For caching
   my $now = DateTime->now( time_zone => $LocalTZ );
+
+  is parse_time(), $now, 'returns now by default';
+  is parse_time('arstien'), $now, 'returns now with unparsable time';
 
   subtest 'parses H:M' => sub {
     my $time = parse_time('13:34');
