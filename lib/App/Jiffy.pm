@@ -12,6 +12,7 @@ our $VERSION = '0.09';
 use App::Jiffy::TimeEntry;
 use App::Jiffy::View::Timesheet;
 use App::Jiffy::Util::Duration qw/round/;
+use App::Jiffy::Util::TimeParsing qw/parse_time/;
 
 use YAML::Any qw( LoadFile );
 use JSON::MaybeXS 'JSON';
@@ -64,47 +65,12 @@ sub add_entry {
     $title = shift;
   }
 
-  my $start_time;
-
-  my $LocalTZ = DateTime::TimeZone->new( name => 'local' );    # For caching
-  my $now = DateTime->now( time_zone => $LocalTZ );
-
-  if ( $options->{time} ) {
-    require DateTime::Format::Strptime;
-
-    # @TODO Figure out something more flexible and powerful to get time
-
-    # First try H:M:S
-    my $strp = DateTime::Format::Strptime->new(
-      pattern   => '%T',
-      time_zone => $LocalTZ,
-    );
-    $start_time = $strp->parse_datetime( $options->{time} );
-
-    # If no time found try just H:M
-    if ( not $start_time ) {
-      my $strp = DateTime::Format::Strptime->new(
-        pattern   => '%R',
-        time_zone => $LocalTZ,
-      );
-      $start_time = $strp->parse_datetime( $options->{time} );
-    }
-
-    # Make sure the date part of the datetime is not set to the
-    # beginning of time.
-    if ( $start_time and $start_time->year < $now->year ) {
-      $start_time->set(
-        day   => $now->day,
-        month => $now->month,
-        year  => $now->year,
-      );
-    }
-  }
+  my $start_time = parse_time($options->{time});
 
   # Create and save Entry
   App::Jiffy::TimeEntry->new(
     title      => $title,
-    start_time => $start_time // $now,
+    start_time => $start_time,
     cfg        => $self->cfg,
   )->save;
 }
