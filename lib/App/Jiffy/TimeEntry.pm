@@ -6,6 +6,7 @@ use warnings;
 use Scalar::Util qw( blessed );
 use MongoDB;
 use MongoDB::OID;
+use DateTime;
 
 use Moo;
 
@@ -13,10 +14,10 @@ my $collection = 'timeEntry';
 
 has id => (
   is  => 'rw',
-  isa => sub {
-    die 'id must be a MongoDB::OID'
-      unless blessed $_[0] and $_[0]->isa('MongoDB::OID');
-  },
+  # isa => sub {
+  #   die 'id must be a MongoDB::OID'
+  #     unless blessed $_[0] and $_[0]->isa('MongoDB::OID');
+  # },
 );
 
 has start_time => (
@@ -24,6 +25,15 @@ has start_time => (
   isa => sub {
     die 'start_time is not a DateTime object'
       unless blessed $_[0] and $_[0]->isa('DateTime');
+  },
+  coerce => sub {
+    if (blessed $_[0] and $_[0]->isa('BSON::Time')) {
+      $_[0] = $_[0]->as_datetime; # Convert to DateTime
+
+      $_[0]->set_time_zone('local');    # Convert to local tz
+    }
+
+    return $_[0]
   },
   default => sub {
     DateTime->now();
@@ -185,11 +195,8 @@ sub search {
   # Return undef if nothing was found
   return unless $entries;
 
-  my $LocalTZ = DateTime::TimeZone->new( name => 'local' );    # For caching
-
 # @TODO create a subclass of the MongoDB cursor that allows chaining of results like MongoDB
   map {
-    $_->{start_time}->set_time_zone($LocalTZ);    # Convert to local tz
     App::Jiffy::TimeEntry->new(
       id         => $_->{_id},
       title      => $_->{title},
