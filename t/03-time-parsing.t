@@ -56,6 +56,17 @@ subtest 'parse_time' => sub {
     is $time->month, 7, 'parses month correctly';
     is $time->year, 1903, 'parses year correctly';
   };
+
+  subtest 'parses ISO 8601' => sub {
+    my $time = parse_time('1805-12-23T15:33:03.0123Z');
+    is $time->hour,   15, 'parses hours correctly';
+    is $time->minute, 33, 'parses minutes correctly';
+    is $time->second, 3, 'parses seconds correctly';
+    is $time->millisecond, 12, 'parses milliseconds correctly';
+    is $time->day,   23, 'parses day correctly';
+    is $time->month, 12, 'parses month correctly';
+    is $time->year, 1805, 'parses year correctly';
+  };
 };
 
 done_testing;

@@ -22,7 +22,7 @@ App::Jiffy's philosophy is that you should have to do as little as possible to t
 In order to be precise with as little effort as possible, App::Jiffy will be available via a myriad of mediums and devices but will have a central server to combine all the information. Plans currently include the following applications:
 
 - Command line tool
-- Web app [App::Jiffyd](https://metacpan.org/pod/App::Jiffyd)
+- Web app [App::Jiffyd](https://metacpan.org/pod/App%3A%3AJiffyd)
 - iPhone app ( potentially )
 
 # INSTALLATION

@@ -4,6 +4,7 @@ requires 'MongoDB', '>= 1.0.0';
 requires 'Moo';
 requires 'DateTime';
 requires 'DateTime::Format::Strptime';
+requires 'DateTime::Format::ISO8601';
 requires 'YAML::Any';
 requires 'Dancer';
 requires 'JSON::MaybeXS';

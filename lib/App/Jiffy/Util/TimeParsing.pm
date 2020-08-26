@@ -3,24 +3,36 @@ use strict;
 use warnings;
 
 use DateTime::Format::Strptime;
+use DateTime::Format::ISO8601;
 
 use Exporter 'import';
 
 our @EXPORT_OK = qw/parse_time/;
 
 sub parse_time {
-  my $time_string = shift;
+  my $time_string = shift // '';
 
   my $start_time;
-  my $LocalTZ = DateTime::TimeZone->new( name => 'local' );    # For caching
+  my $LocalTZ = DateTime::TimeZone->new( name => 'local' );
   my $now = DateTime->now( time_zone => $LocalTZ );
 
-  # First try H:M:S
-  my $strp = DateTime::Format::Strptime->new(
-    pattern   => '%F %T',
-    time_zone => $LocalTZ,
-  );
-  $start_time = $strp->parse_datetime($time_string);
+  my $strp = DateTime::Format::ISO8601->new();
+  eval {
+    $start_time = $strp->parse_datetime($time_string);
+
+    if ($start_time->time_zone()->name eq 'floating') {
+      $start_time->set_time_zone($LocalTZ);
+    }
+  };
+
+  # First try F H:M:S
+  if ( not $start_time ) {
+    my $strp = DateTime::Format::Strptime->new(
+      pattern   => '%F %T',
+      time_zone => $LocalTZ,
+    );
+    $start_time = $strp->parse_datetime($time_string);
+  }
 
   # If no time found try just H:M:S
   if ( not $start_time ) {
