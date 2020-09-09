@@ -56,9 +56,14 @@ C<db> get the db handler from MongoDB
 =cut
 
 sub db {
-  my $self   = shift;
+  my $self = shift;
+  return get_db( $self->cfg );
+}
+
+sub get_db {
+  my $cfg = shift;
   my $client = MongoDB::MongoClient->new;
-  return $client->get_database( ( $self->cfg ) ? $self->cfg->{db} : 'jiffy' );
+  return $client->get_database( ( $cfg ) ? $cfg->{db} : 'jiffy' );
 }
 
 =head2 save
@@ -137,8 +142,7 @@ sub find {
   my $cfg = shift;
   my $_id = shift;
 
-  my $client = MongoDB::MongoClient->new;
-  my $entry  = $client->get_database( $cfg->{db} )->get_collection($collection)
+  my $entry  = get_db($cfg)->get_collection($collection)
     ->find_one( { _id => $_id } );
   return unless $entry;
   return App::Jiffy::TimeEntry->new(
@@ -180,8 +184,7 @@ sub search {
   my $sort    = $options{sort};
   my $limit   = $options{limit};
 
-  my $client  = MongoDB::MongoClient->new;
-  my $entries = $client->get_database( $cfg->{db} )->get_collection($collection)
+  my $entries = get_db($cfg)->get_collection($collection)
     ->find($query);
 
   if ($sort) {
@@ -215,8 +218,7 @@ C<last_entry> will return the last TimeEntry in the db.
 sub last_entry {
   my $cfg = shift;
 
-  my $client = MongoDB::MongoClient->new;
-  my $entry  = $client->get_database( $cfg->{db} )->get_collection($collection)
+  my $entry  = get_db($cfg)->get_collection($collection)
     ->find->sort( { start_time => -1 } )->limit(1)->next;
   return unless $entry;
   return App::Jiffy::TimeEntry->new(
