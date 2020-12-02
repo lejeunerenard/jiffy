@@ -37,6 +37,28 @@ subtest 'parse_time' => sub {
     is $time->year, $now->year, 'assumes the year is today\'s years';
   };
 
+  subtest 'parses H:M w/ it being next day in UTC' => sub {
+    my $tomorrow = $now->clone();
+
+    $tomorrow->set_day($tomorrow->day + 1);
+    $tomorrow->set_time_zone('UTC');
+    $tomorrow->truncate(to => 'day');
+    my $tomorrow_epoch = $tomorrow->epoch();
+
+    no warnings 'redefine';
+    local *DateTime::_core_time = sub { $tomorrow_epoch; };
+
+    my $now = DateTime->now( time_zone => $LocalTZ );
+
+    my $time = parse_time('13:34');
+    is $time->hour,   13, 'parses hours correctly';
+    is $time->minute, 34, 'parses minutes correctly';
+    is $time->second, 0, 'assumes seconds are 0';
+    is $time->day,   $now->day, 'assumes the day is today\'s day';
+    is $time->month, $now->month, 'assumes the month is today\'s month';
+    is $time->year, $now->year, 'assumes the year is today\'s years';
+  };
+
   subtest 'parses H:M:S' => sub {
     my $time = parse_time('03:28:57');
     is $time->hour,   3, 'parses hours correctly';
